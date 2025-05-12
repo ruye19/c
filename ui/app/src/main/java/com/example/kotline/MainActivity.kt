@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.kotline.ui.screens.HomeScreen
 import com.example.kotline.ui.screens.LoginScreen
 import com.example.kotline.ui.screens.SignupScreen
 import com.example.kotline.ui.theme.KotlineTheme
@@ -38,33 +39,21 @@ fun AppNavigation() {
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
             LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate("home") {
-                        popUpTo("login") { inclusive = true }
-                    }
-                },
-                onSignupClick = {
-                    navController.navigate("signup")
-                }
+                onLoginSuccess = { navController.navigate("home") },
+                onSignupClick = { navController.navigate("signup") }
             )
         }
         composable("signup") {
             SignupScreen(
-                onSignupSuccess = {
-                    navController.navigate("home") {
-                        popUpTo("login") { inclusive = true }
-                    }
-                }
+                onSignupSuccess = { navController.navigate("login") }
             )
         }
         composable("home") {
-            // TODO: Add home screen
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
-            ) {
-                // Home screen content will go here
-            }
+            HomeScreen(
+                userFirstName = "User", // Replace with actual user data
+                onAskClick = { /* Navigate to ask question screen */ },
+                onSeeAnswersClick = { /* Navigate to see answers screen */ }
+            )
         }
     }
-} 
+}

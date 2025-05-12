@@ -3,6 +3,7 @@ package com.example.kotline.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kotline.AuthManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -88,6 +89,7 @@ class LoginViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     response.body()?.let {
                         Log.d("LoginViewModel", "Login successful")
+                        AuthManager.token = it.token
                         _loginState.value = LoginState.Success(it.msg, it.token)
                     } ?: run {
                         Log.e("LoginViewModel", "Empty response from server")
