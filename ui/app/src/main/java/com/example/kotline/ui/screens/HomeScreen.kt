@@ -52,29 +52,31 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.Black)
             .padding(16.dp)
     ) {
         // Top section with welcome and ask button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Welcome: $userFirstName",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
             Button(
                 onClick = onAskClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8800)),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.height(36.dp)
             ) {
-                Text("Ask Question")
+                Text("Ask", color = Color.White, fontWeight = FontWeight.Bold)
             }
+            Text(
+                text = "Welcome: $userFirstName",
+                color = Color.White,
+                fontWeight = FontWeight.Normal,
+                fontSize = 16.sp
+            )
         }
 
         // Search bar
@@ -84,18 +86,33 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            placeholder = { Text("Search questions...") },
+            placeholder = { Text("Search", color = Color.Gray) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search"
+                    contentDescription = "Search",
+                    tint = Color.Black
                 )
             },
             singleLine = true,
+            shape = RoundedCornerShape(8.dp),
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                focusedBorderColor = Color(0xFFFF8800),
+                unfocusedBorderColor = Color.LightGray,
+                containerColor = Color.White,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = Color(0xFFFF8800)
             )
+        )
+
+        // Questions header
+        Text(
+            text = "Questions",
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            modifier = Modifier.padding(vertical = 8.dp)
         )
 
         // Questions list
@@ -105,7 +122,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = Color(0xFFFF8800))
                 }
             }
             is QuestionState.Success -> {
@@ -117,7 +134,7 @@ fun HomeScreen(
                         it.title.contains(searchQuery, ignoreCase = true) ||
                         it.description.contains(searchQuery, ignoreCase = true)
                     }) { question ->
-                        QuestionCard(question = question, onSeeAnswersClick = { onSeeAnswersClick(question.questionid) })
+                        QuestionCardStyled(question = question, onSeeAnswersClick = { onSeeAnswersClick(question.questionid) })
                     }
                 }
             }
@@ -128,7 +145,7 @@ fun HomeScreen(
                 ) {
                     Text(
                         text = state.message,
-                        color = MaterialTheme.colorScheme.error
+                        color = Color.Red
                     )
                 }
             }
@@ -141,16 +158,10 @@ fun HomeScreen(
 }
 
 @Composable
-fun QuestionCard(question: Question, onSeeAnswersClick: () -> Unit) {
-    val isAdmin = AuthManager.roleId == 1
-    val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-    var isDeleting by remember { mutableStateOf(false) }
-    val questionViewModel: QuestionViewModel = viewModel()
-
+fun QuestionCardStyled(question: Question, onSeeAnswersClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F2F2)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
@@ -190,54 +201,24 @@ fun QuestionCard(question: Question, onSeeAnswersClick: () -> Unit) {
                         color = Color.Gray
                     )
                 }
-                if (isAdmin) {
-                    IconButton(
-                        onClick = {
-                            isDeleting = true
-                            coroutineScope.launch {
-                                try {
-                                    val api = ApiClient.create(QuestionApi::class.java)
-                                    val response = api.deleteQuestion(question.questionid)
-                                    if (response.isSuccessful) {
-                                        Toast.makeText(context, "Question deleted", Toast.LENGTH_SHORT).show()
-                                        questionViewModel.fetchQuestions()
-                                    } else {
-                                        Toast.makeText(context, "Failed to delete", Toast.LENGTH_SHORT).show()
-                                    }
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                                } finally {
-                                    isDeleting = false
-                                }
-                            }
-                        },
-                        enabled = !isDeleting
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete Question",
-                            tint = Color(0xFFFF8800)
-                        )
-                    }
-                }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = question.description,
                 color = Color.Black,
-                fontSize = 15.sp
+                fontSize = 14.sp
             )
-            Spacer(modifier = Modifier.height(12.dp))
-            Box(
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                horizontalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = "See Answers",
                     color = Color(0xFFFF8800),
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp,
-                    modifier = Modifier.clickable { onSeeAnswersClick() }
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clickable { onSeeAnswersClick() }
                 )
             }
         }
