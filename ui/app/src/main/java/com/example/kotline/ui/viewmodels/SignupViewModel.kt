@@ -39,7 +39,7 @@ class SignupViewModel : ViewModel() {
 
     // Use your computer's actual IP address here
     // For example: "http://192.168.1.100:5500/"
-    private val BASE_URL = "http://192.168.1.7:5500/"
+     private val BASE_URL = "http://192.168.4.125:5500/"
 
     private val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)

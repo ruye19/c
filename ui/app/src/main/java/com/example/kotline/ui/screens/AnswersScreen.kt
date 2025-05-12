@@ -65,8 +65,7 @@ fun AnswersScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
@@ -76,16 +75,45 @@ fun AnswersScreen(
                     tint = Color.White
                 )
             }
-            Text(
-                text = "Answers",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-            // Empty space to balance the back button
-            Spacer(modifier = Modifier.width(48.dp))
         }
-
+        // Tips section
+        Text(
+            text = "Tips",
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 22.sp,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Column(modifier = Modifier.padding(bottom = 12.dp)) {
+            Text(
+                text = "Read the question carefully before answering.",
+                color = Color.White,
+                fontSize = 14.sp
+            )
+            Text(
+                text = "Search online. ",
+                color = Color(0xFF2196F3),
+                fontSize = 14.sp
+            )
+            Text(
+                text = "Share links to useful resources.",
+                color = Color(0xFF2196F3),
+                fontSize = 14.sp
+            )
+            Text(
+                text = "Be respectful, concise, and helpful in your response.",
+                color = Color.White,
+                fontSize = 14.sp
+            )
+        }
+        // View Answers header
+        Text(
+            text = "View Answers",
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
         // Answers list
         when (val state = answerState) {
             is AnswerState.Loading -> {
@@ -99,7 +127,7 @@ fun AnswersScreen(
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         state.answers.forEach { answer ->
-                            AnswerCard(answer)
+                            AnswerCardStyled(answer)
                         }
                     }
                 }
@@ -118,48 +146,52 @@ fun AnswersScreen(
             }
             else -> {}
         }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Answer input section
-        Column(
+        Spacer(modifier = Modifier.height(16.dp))
+        Divider(color = Color.Gray, thickness = 1.dp)
+        // Submit an answer section
+        Text(
+            text = "Submit an answer",
+            color = Color.White,
+            fontWeight = FontWeight.Normal,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+        )
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp)
+                .background(Color.White, shape = RoundedCornerShape(12.dp))
         ) {
-            Text(
-                text = "Post Your Answer",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
             OutlinedTextField(
                 value = answerText,
                 onValueChange = { answerText = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp),
+                    .height(120.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFFFF8800),
                     unfocusedBorderColor = Color.Gray,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = Color(0xFFFF8800)
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    cursorColor = Color(0xFFFF8800),
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White
                 ),
-                placeholder = { Text("Write your answer here...", color = Color.Gray) },
+                placeholder = { Text("Type your answer here", color = Color.Gray) },
                 maxLines = 5
             )
-
-            if (showError != null) {
-                Text(
-                    text = showError!!,
-                    color = Color.Red,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
-
+        }
+        if (showError != null) {
+            Text(
+                text = showError!!,
+                color = Color.Red,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
             Button(
                 onClick = {
                     if (answerText.isBlank()) {
@@ -173,8 +205,6 @@ fun AnswersScreen(
                 shape = RoundedCornerShape(4.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8800)),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(44.dp)
                     .padding(top = 8.dp)
             ) {
                 Text(
@@ -188,38 +218,58 @@ fun AnswersScreen(
 }
 
 @Composable
-fun AnswerCard(answer: Answer) {
+fun AnswerCardStyled(answer: Answer) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1E1E1E)
+            containerColor = Color.White
         ),
-        border = BorderStroke(1.dp, Color(0xFFFF8800))
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.Top
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFEEEEEE)),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = answer.username ?: "Anonymous",
-                    color = Color(0xFFFF8800),
-                    fontWeight = FontWeight.Bold
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Avatar",
+                    tint = Color.Gray,
+                    modifier = Modifier.size(28.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = answer.answer,
-                color = Color.White,
-                fontSize = 16.sp
-            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = answer.username ?: "User",
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = answer.answerid ?: "date",
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = answer.answer,
+                    color = Color.Black,
+                    fontSize = 14.sp
+                )
+            }
         }
     }
 } 

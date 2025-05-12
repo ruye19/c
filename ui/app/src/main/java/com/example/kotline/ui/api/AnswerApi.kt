@@ -10,6 +10,7 @@ import com.example.kotline.ui.viewmodels.QuestionState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.BorderStroke
 import com.example.kotline.AuthManager
+import androidx.compose.ui.graphics.Color
 
 // Data class for an answer
 // Matches backend: answerid, userid, questionid, answer, username
