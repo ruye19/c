@@ -88,7 +88,12 @@ fun AppNavigation() {
             com.example.kotline.ui.screens.AdminDashboardScreen(
                 onBack = { navController.popBackStack() },
                 onViewQuestions = { navController.navigate("home") },
-                onViewUsers = { /* TODO: navigate to users list */ }
+                onViewUsers = { navController.navigate("admin_users") }
+            )
+        }
+        composable("admin_users") {
+            com.example.kotline.ui.screens.UserListScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }

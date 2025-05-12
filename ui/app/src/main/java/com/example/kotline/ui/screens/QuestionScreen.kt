@@ -15,6 +15,15 @@ import com.example.kotline.ui.viewmodels.QuestionViewModel
 import com.example.kotline.ui.viewmodels.QuestionState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.filled.Delete
+import com.example.kotline.AuthManager
+import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
+import androidx.compose.runtime.rememberCoroutineScope
+import com.example.kotline.ui.api.ApiClient
+import com.example.kotline.ui.api.QuestionApi
+import retrofit2.HttpException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,10 +32,16 @@ fun QuestionScreen(
     onBack: () -> Unit,
     questionViewModel: QuestionViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val questionState by questionViewModel.singleQuestionState.collectAsState()
+    val isAdmin = AuthManager.roleId == 1
+    println("DEBUG: AuthManager.roleId = ${AuthManager.roleId}")
+    var isDeleting by remember { mutableStateOf(false) }
+
     LaunchedEffect(questionId) {
         questionViewModel.fetchSingleQuestion(questionId)
     }
-    val questionState by questionViewModel.singleQuestionState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -55,8 +70,38 @@ fun QuestionScreen(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-            // Empty space to balance the back button
-            Spacer(modifier = Modifier.width(48.dp))
+            if (isAdmin) {
+                IconButton(
+                    onClick = {
+                        isDeleting = true
+                        coroutineScope.launch {
+                            try {
+                                val api = ApiClient.create(QuestionApi::class.java)
+                                val response = api.deleteQuestion(questionId)
+                                if (response.isSuccessful) {
+                                    Toast.makeText(context, "Question deleted", Toast.LENGTH_SHORT).show()
+                                    onBack()
+                                } else {
+                                    Toast.makeText(context, "Failed to delete", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                            } finally {
+                                isDeleting = false
+                            }
+                        }
+                    },
+                    enabled = !isDeleting
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete Question",
+                        tint = Color(0xFFFF8800)
+                    )
+                }
+            } else {
+                Spacer(modifier = Modifier.width(48.dp))
+            }
         }
 
         when (val state = questionState) {

@@ -5,6 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.DELETE
 
 // Data class for a question
 // Matches backend: id, questionid, userid, title, description, tag, username, profession
@@ -50,4 +51,7 @@ interface QuestionApi {
 
     @GET("api/question/{question_id}")
     suspend fun getSingleQuestion(@Path("question_id") questionId: String): Response<SingleQuestionResponse>
+
+    @DELETE("api/question/{question_id}")
+    suspend fun deleteQuestion(@Path("question_id") questionId: String): Response<Unit>
 } 

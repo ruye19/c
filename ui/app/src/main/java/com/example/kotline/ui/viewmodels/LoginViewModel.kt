@@ -101,6 +101,7 @@ class LoginViewModel : ViewModel() {
                         AuthManager.token = it.token
                         AuthManager.firstName = it.user.firstname ?: "User"
                         AuthManager.userId = it.user.userid
+                        AuthManager.roleId = it.user.role_id
                         _loginState.value = LoginState.Success(
                             message = it.msg,
                             token = it.token,

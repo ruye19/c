@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +27,12 @@ import com.example.kotline.ui.viewmodels.QuestionState
 import com.example.kotline.ui.viewmodels.QuestionViewModel
 import com.example.kotline.ui.viewmodels.LoginViewModel
 import com.example.kotline.AuthManager
+import com.example.kotline.ui.api.ApiClient
+import com.example.kotline.ui.api.QuestionApi
+import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
+import androidx.compose.runtime.rememberCoroutineScope
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,6 +142,12 @@ fun HomeScreen(
 
 @Composable
 fun QuestionCard(question: Question, onSeeAnswersClick: () -> Unit) {
+    val isAdmin = AuthManager.roleId == 1
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var isDeleting by remember { mutableStateOf(false) }
+    val questionViewModel: QuestionViewModel = viewModel()
+
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F2F2)),
@@ -145,7 +158,10 @@ fun QuestionCard(question: Question, onSeeAnswersClick: () -> Unit) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -161,7 +177,7 @@ fun QuestionCard(question: Question, onSeeAnswersClick: () -> Unit) {
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = question.username ?: "Abebe Mola",
                         fontWeight = FontWeight.Bold,
@@ -173,6 +189,36 @@ fun QuestionCard(question: Question, onSeeAnswersClick: () -> Unit) {
                         fontSize = 13.sp,
                         color = Color.Gray
                     )
+                }
+                if (isAdmin) {
+                    IconButton(
+                        onClick = {
+                            isDeleting = true
+                            coroutineScope.launch {
+                                try {
+                                    val api = ApiClient.create(QuestionApi::class.java)
+                                    val response = api.deleteQuestion(question.questionid)
+                                    if (response.isSuccessful) {
+                                        Toast.makeText(context, "Question deleted", Toast.LENGTH_SHORT).show()
+                                        questionViewModel.fetchQuestions()
+                                    } else {
+                                        Toast.makeText(context, "Failed to delete", Toast.LENGTH_SHORT).show()
+                                    }
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                } finally {
+                                    isDeleting = false
+                                }
+                            }
+                        },
+                        enabled = !isDeleting
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete Question",
+                            tint = Color(0xFFFF8800)
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
