@@ -91,7 +91,7 @@ const login = async (req, res) => {
   try {
     // Get user with role information
     const [user] = await DBConnection.query(
-      `SELECT u.userid, u.username, u.password, r.role_name, r.role_id 
+      `SELECT u.userid, u.username, u.password, r.role_name, r.role_id, u.firstname 
        FROM users u
        JOIN roles r ON u.role_id = r.role_id
        WHERE u.email = ?`,
@@ -113,7 +113,7 @@ const login = async (req, res) => {
     }
 
     // Create token with role information
-    const { userid, username, role_id, role_name } = user[0];
+    const { userid, username, role_id, role_name, firstname } = user[0];
     const token = jwt.sign(
       { userid, username, role_id, role_name },
       process.env.JWT_SECRET,
@@ -128,6 +128,7 @@ const login = async (req, res) => {
         username,
         role_id,
         role: role_name,
+        firstname
       },
     });
   } catch (error) {

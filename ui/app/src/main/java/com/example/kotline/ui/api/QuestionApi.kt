@@ -2,6 +2,8 @@ package com.example.kotline.ui.api
 
 import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.Body
+import retrofit2.http.POST
 
 // Data class for a question
 // Matches backend: id, questionid, userid, title, description, tag, username, profession
@@ -22,7 +24,21 @@ data class QuestionsResponse(
     val allQuestion: List<Question>
 )
 
+data class AskQuestionRequest(
+    val title: String,
+    val description: String,
+    val tag: String? = null
+)
+
+data class AskQuestionResponse(
+    val message: String,
+    val questionid: String?
+)
+
 interface QuestionApi {
     @GET("api/question/")
     suspend fun getAllQuestions(): Response<QuestionsResponse>
+
+    @POST("api/question/")
+    suspend fun postQuestion(@Body request: AskQuestionRequest): Response<AskQuestionResponse>
 } 

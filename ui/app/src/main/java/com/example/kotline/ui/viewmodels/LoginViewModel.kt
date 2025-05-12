@@ -15,6 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
 import java.util.concurrent.TimeUnit
+import com.google.gson.annotations.SerializedName
 
 data class LoginRequest(
     val email: String,
@@ -24,7 +25,15 @@ data class LoginRequest(
 data class LoginResponse(
     val msg: String,
     val token: String,
-    val role_id: Int
+    val user: UserInfo
+)
+
+data class UserInfo(
+    val userid: String,
+    val username: String,
+    val role_id: Int,
+    val role: String,
+    val firstname: String? // Make nullable for safety
 )
 
 interface AuthApi {
@@ -35,7 +44,7 @@ interface AuthApi {
 sealed class LoginState {
     object Idle : LoginState()
     object Loading : LoginState()
-    data class Success(val message: String, val token: String) : LoginState()
+    data class Success(val message: String, val token: String, val firstName: String) : LoginState()
     data class Error(val message: String) : LoginState()
 }
 
@@ -90,7 +99,12 @@ class LoginViewModel : ViewModel() {
                     response.body()?.let {
                         Log.d("LoginViewModel", "Login successful")
                         AuthManager.token = it.token
-                        _loginState.value = LoginState.Success(it.msg, it.token)
+                        AuthManager.firstName = it.user.firstname ?: "User"
+                        _loginState.value = LoginState.Success(
+                            message = it.msg,
+                            token = it.token,
+                            firstName = it.user.firstname ?: "User"
+                        )
                     } ?: run {
                         Log.e("LoginViewModel", "Empty response from server")
                         _loginState.value = LoginState.Error("Empty response from server")
@@ -108,6 +122,43 @@ class LoginViewModel : ViewModel() {
                     "Network error: ${e.message ?: "Unknown error occurred"}"
                 )
             }
+        }
+    }
+
+    private suspend fun loginUser(username: String, password: String) {
+        try {
+            _loginState.value = LoginState.Loading
+            val response = authApi.login(LoginRequest(username, password))
+            
+            // Add logging to see the raw response
+            Log.d("LoginViewModel", "Raw response: ${response.body()}")
+            
+            if (response.isSuccessful) {
+                val loginResponse = response.body()
+                Log.d("LoginViewModel", "Parsed response: $loginResponse")
+                
+                if (loginResponse != null) {
+                    // Store the token
+                    AuthManager.token = loginResponse.token
+                    // Store the firstname from user object
+                    AuthManager.firstName = loginResponse.user.firstname ?: "User"
+                    
+                    _loginState.value = LoginState.Success(
+                        message = loginResponse.msg,
+                        token = loginResponse.token,
+                        firstName = loginResponse.user.firstname ?: "User"
+                    )
+                } else {
+                    _loginState.value = LoginState.Error("Invalid response from server")
+                }
+            } else {
+                val errorBody = response.errorBody()?.string()
+                Log.e("LoginViewModel", "Error response: $errorBody")
+                _loginState.value = LoginState.Error("Login failed: ${errorBody ?: "Unknown error"}")
+            }
+        } catch (e: Exception) {
+            Log.e("LoginViewModel", "Exception during login", e)
+            _loginState.value = LoginState.Error("Network error: ${e.message}")
         }
     }
 } 

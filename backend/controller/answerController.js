@@ -1,41 +1,71 @@
- const dbConnection = require("../db/dbConfig")
+const dbConnection = require("../db/dbConfig")
 const { StatusCodes } = require("http-status-codes")
 
 async function postAnswer(req, res) {
   const { questionid, answer, userid } = req.body
+  console.log("Received post answer request:", { questionid, answer, userid })
+  
   if (!answer) {
     return res
       .status(StatusCodes.BAD_REQUEST)
       .json({ message: "Please provide answer" })
   }
+
   try {
-    dbConnection.query(
-      "INSERT INTO answers (userid,questionid,answer) VALUES (?,?,?)",
+    const [result] = await dbConnection.query(
+      "INSERT INTO answers (userid, questionid, answer_text) VALUES (?, ?, ?)",
       [userid, questionid, answer]
     )
+
+    console.log("Answer posted successfully:", result)
 
     return res
       .status(StatusCodes.CREATED)
       .json({ message: "Answer posted successfully" })
   } catch (error) {
+    console.error("Error posting answer:", error)
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "An unexpected error occurred." })
+      .json({ 
+        message: "An unexpected error occurred",
+        error: error.message 
+      })
   }
 }
+
 async function getAnswer(req, res) {
   const { questionid } = req.params
+  console.log("Fetching answers for question:", questionid)
+  
   try {
     const [answers] = await dbConnection.query(
-      `SELECT a.answerid,a.userid,a.questionid,a.answer,u.username from answers a join users u on a.userid=u.userid WHERE questionid = '${questionid}'`
+      `SELECT a.answerid, a.userid, a.questionid, a.answer_text as answer, u.username 
+       FROM answers a 
+       JOIN users u ON a.userid = u.userid 
+       WHERE a.questionid = ?`,
+      [questionid]
     )
-    return res
-      .status(StatusCodes.OK)
-      .json({ message: "Answers retrieved successfully", answers })
+    
+    console.log("Found answers:", answers)
+    
+    if (!answers || answers.length === 0) {
+      console.log("No answers found for question:", questionid)
+      return res.status(StatusCodes.OK).json({ 
+        message: "No answers found", 
+        answers: [] 
+      })
+    }
+
+    return res.status(StatusCodes.OK).json({ 
+      message: "Answers retrieved successfully", 
+      answers 
+    })
   } catch (error) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "An unexpected error occurred." })
+    console.error("Error fetching answers:", error)
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ 
+      message: "An unexpected error occurred",
+      error: error.message 
+    })
   }
 }
 
@@ -56,7 +86,5 @@ async function getAnswerStats(req, res) {
     });
   }
 }
-
-
 
 module.exports = { postAnswer, getAnswer, getAnswerStats };

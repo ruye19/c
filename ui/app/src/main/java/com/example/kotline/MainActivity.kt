@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -14,7 +15,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.kotline.ui.screens.HomeScreen
 import com.example.kotline.ui.screens.LoginScreen
 import com.example.kotline.ui.screens.SignupScreen
+import com.example.kotline.ui.screens.AskQuestionScreen
+import com.example.kotline.ui.screens.AnswersScreen
 import com.example.kotline.ui.theme.KotlineTheme
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.graphics.Color
+import android.util.Log
+import com.google.gson.annotations.SerializedName
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,11 +56,41 @@ fun AppNavigation() {
             )
         }
         composable("home") {
+            @OptIn(ExperimentalMaterial3Api::class)
             HomeScreen(
-                userFirstName = "User", // Replace with actual user data
-                onAskClick = { /* Navigate to ask question screen */ },
-                onSeeAnswersClick = { /* Navigate to see answers screen */ }
+                userFirstName = AuthManager.firstName ?: "User",
+                onAskClick = { navController.navigate("ask") },
+                onSeeAnswersClick = { questionId -> navController.navigate("answers/$questionId") }
+            )
+        }
+        composable("ask") {
+            AskQuestionScreen(
+                onBack = { navController.popBackStack() },
+                onPostSuccess = {
+                    navController.popBackStack("home", inclusive = false)
+                }
+            )
+        }
+        composable("answers/{questionId}") { backStackEntry ->
+            val questionId = backStackEntry.arguments?.getString("questionId") ?: ""
+            AnswersScreen(
+                questionId = questionId,
+                onBack = { navController.popBackStack() }
             )
         }
     }
 }
+
+data class LoginResponse(
+    val msg: String,
+    val token: String,
+    val user: UserInfo
+)
+
+data class UserInfo(
+    val userid: String,
+    val username: String,
+    val role_id: Int,
+    val role: String,
+    val firstname: String? // Make nullable for safety
+)

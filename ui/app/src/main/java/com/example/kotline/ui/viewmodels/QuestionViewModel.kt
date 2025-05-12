@@ -15,6 +15,9 @@ sealed class QuestionState {
     object Loading : QuestionState()
     data class Success(val questions: List<Question>) : QuestionState()
     data class Error(val message: String) : QuestionState()
+    object Posting : QuestionState()
+    data class PostSuccess(val message: String) : QuestionState()
+    data class PostError(val message: String) : QuestionState()
 }
 
 class QuestionViewModel : ViewModel() {
@@ -44,6 +47,33 @@ class QuestionViewModel : ViewModel() {
             } catch (e: Exception) {
                 Log.e("QuestionViewModel", "Network error", e)
                 _questionState.value = QuestionState.Error(
+                    "Network error: ${e.message ?: "Unknown error occurred"}"
+                )
+            }
+        }
+    }
+
+    fun postQuestion(title: String, description: String, tag: String? = null) {
+        viewModelScope.launch {
+            _questionState.value = QuestionState.Posting
+            try {
+                val response = questionApi.postQuestion(
+                    com.example.kotline.ui.api.AskQuestionRequest(title, description, tag)
+                )
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        _questionState.value = QuestionState.PostSuccess(it.message)
+                    } ?: run {
+                        _questionState.value = QuestionState.PostError("Empty response from server")
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    _questionState.value = QuestionState.PostError(
+                        "Failed to post question: ${errorBody ?: response.message()}"
+                    )
+                }
+            } catch (e: Exception) {
+                _questionState.value = QuestionState.PostError(
                     "Network error: ${e.message ?: "Unknown error occurred"}"
                 )
             }
