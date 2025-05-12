@@ -24,6 +24,9 @@ class QuestionViewModel : ViewModel() {
     private val _questionState = MutableStateFlow<QuestionState>(QuestionState.Idle)
     val questionState: StateFlow<QuestionState> = _questionState
 
+    private val _singleQuestionState = MutableStateFlow<QuestionState>(QuestionState.Idle)
+    val singleQuestionState: StateFlow<QuestionState> = _singleQuestionState
+
     private val questionApi = ApiClient.create(QuestionApi::class.java)
 
     fun fetchQuestions() {
@@ -75,6 +78,36 @@ class QuestionViewModel : ViewModel() {
             } catch (e: Exception) {
                 _questionState.value = QuestionState.PostError(
                     "Network error: ${e.message ?: "Unknown error occurred"}"
+                )
+            }
+        }
+    }
+
+    fun fetchSingleQuestion(questionId: String) {
+        viewModelScope.launch {
+            _singleQuestionState.value = QuestionState.Loading
+            try {
+                val response = questionApi.getSingleQuestion(questionId)
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        val question = it.singleQuestion.firstOrNull()
+                        if (question != null) {
+                            _singleQuestionState.value = QuestionState.Success(listOf(question))
+                        } else {
+                            _singleQuestionState.value = QuestionState.Error("Question not found")
+                        }
+                    } ?: run {
+                        _singleQuestionState.value = QuestionState.Error("Empty response from server")
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    _singleQuestionState.value = QuestionState.Error(
+                        "Failed to fetch question: "+ (errorBody ?: response.message())
+                    )
+                }
+            } catch (e: Exception) {
+                _singleQuestionState.value = QuestionState.Error(
+                    "Network error: "+ (e.message ?: "Unknown error occurred")
                 )
             }
         }

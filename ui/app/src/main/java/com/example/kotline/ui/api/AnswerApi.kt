@@ -5,6 +5,10 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import com.example.kotline.ui.viewmodels.QuestionViewModel
+import com.example.kotline.ui.viewmodels.QuestionState
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.BorderStroke
 
 // Data class for an answer
 // Matches backend: answerid, userid, questionid, answer, username
@@ -33,9 +37,12 @@ data class PostAnswerResponse(
 )
 
 interface AnswerApi {
-    @GET("answers/{questionid}")
+    @GET("api/answers/{questionid}")
     suspend fun getAnswers(@Path("questionid") questionid: String): Response<AnswersResponse>
 
-    @POST("answers")
+    @POST("api/answers")
     suspend fun postAnswer(@Body request: PostAnswerRequest): Response<PostAnswerResponse>
+
+    @GET("api/question/{question_id}")
+    suspend fun getSingleQuestion(@Path("question_id") questionId: String): Response<SingleQuestionResponse>
 } 

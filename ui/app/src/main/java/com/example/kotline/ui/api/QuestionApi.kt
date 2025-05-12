@@ -4,6 +4,7 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Body
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 // Data class for a question
 // Matches backend: id, questionid, userid, title, description, tag, username, profession
@@ -35,10 +36,18 @@ data class AskQuestionResponse(
     val questionid: String?
 )
 
+data class SingleQuestionResponse(
+    val msg: String,
+    val singleQuestion: List<Question>
+)
+
 interface QuestionApi {
     @GET("api/question/")
     suspend fun getAllQuestions(): Response<QuestionsResponse>
 
     @POST("api/question/")
     suspend fun postQuestion(@Body request: AskQuestionRequest): Response<AskQuestionResponse>
+
+    @GET("api/question/{question_id}")
+    suspend fun getSingleQuestion(@Path("question_id") questionId: String): Response<SingleQuestionResponse>
 } 

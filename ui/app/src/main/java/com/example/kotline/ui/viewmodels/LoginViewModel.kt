@@ -63,7 +63,7 @@ class LoginViewModel : ViewModel() {
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    private val BASE_URL = "http://192.168.1.7:5500/"
+    private val BASE_URL = "http://192.168.4.125:5500/"
 
     private val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
@@ -100,6 +100,7 @@ class LoginViewModel : ViewModel() {
                         Log.d("LoginViewModel", "Login successful")
                         AuthManager.token = it.token
                         AuthManager.firstName = it.user.firstname ?: "User"
+                        AuthManager.userId = it.user.userid
                         _loginState.value = LoginState.Success(
                             message = it.msg,
                             token = it.token,

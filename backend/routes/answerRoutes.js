@@ -7,8 +7,14 @@ const {
   getAnswerStats,
   //   getAnswerCount,
 } = require("../controller/answerController");
-router.post("/", postAnswer)
-router.get("/getAnswerStats", getAnswerStats);
+
+// Get answers for a specific question
 router.get("/:questionid", getAnswer)
+
+// Post a new answer
+router.post("/", postAnswer)
+
+// Get answer statistics
+router.get("/stats", getAnswerStats)
 
 module.exports = router

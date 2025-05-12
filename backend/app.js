@@ -1,7 +1,11 @@
 //require("dotenv").config();
 const express = require("express")
-const app = express()
 const cors = require("cors")
+const questionRoutes = require("./routes/questionRoute")
+const userRoutes = require("./routes/userRoutes")
+const answerRoutes = require("./routes/answerRoutes")
+
+const app = express()
 
 // Configure CORS to allow all origins
 app.use(cors({
@@ -10,9 +14,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }))
 
-const usersRoutes = require("./routes/userRoutes")
-const questionRoutes = require("./routes/questionRoute")
-const answerRoutes = require("./routes/answerRoutes")
 const authMiddleWare = require("./middleware/AuthMiddleware")
 PORT = 5500
 const dbcon = require("./db/dbConfig")
@@ -24,13 +25,10 @@ app.get("/", (req, res) => {
   res.send("done!")
 })
 
-app.use("/api/users", usersRoutes)
-
-//question router
+// Mount routes
 app.use("/api/question", authMiddleWare, questionRoutes)
-
-//answer router
-app.use("/api/answer", authMiddleWare, answerRoutes)
+app.use("/api/users", userRoutes)
+app.use("/api/answers", authMiddleWare, answerRoutes)
 
 async function start() {
   try {
@@ -44,11 +42,17 @@ async function start() {
 
 start()
 
-app.listen(PORT, (err) => {
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack)
+    res.status(500).json({ message: "Something went wrong!" })
+})
+
+app.listen(PORT, '0.0.0.0', (err) => {
   if (err) {
     console.log(err.message)
   } else {
-    console.log("Litsenning on http://localhost:5500")
+    console.log(`Server is running on http://0.0.0.0:${PORT}`)
   }
 })
 

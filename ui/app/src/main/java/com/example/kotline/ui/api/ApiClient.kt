@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
     // Use your computer's IP address here
-    private const val BASE_URL = "http://192.168.1.7:5500/"
+    private const val BASE_URL = "http://192.168.4.125:5500/"
 
     private val authInterceptor = Interceptor { chain ->
         val originalRequest = chain.request()
