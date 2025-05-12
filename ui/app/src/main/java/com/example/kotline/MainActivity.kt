@@ -46,7 +46,13 @@ fun AppNavigation() {
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
             LoginScreen(
-                onLoginSuccess = { navController.navigate("home") },
+                onLoginSuccess = { roleId ->
+                    if (roleId == 1) {
+                        navController.navigate("admin_dashboard")
+                    } else {
+                        navController.navigate("home")
+                    }
+                },
                 onSignupClick = { navController.navigate("signup") }
             )
         }
@@ -76,6 +82,13 @@ fun AppNavigation() {
             AnswersScreen(
                 questionId = questionId,
                 onBack = { navController.popBackStack() }
+            )
+        }
+        composable("admin_dashboard") {
+            com.example.kotline.ui.screens.AdminDashboardScreen(
+                onBack = { navController.popBackStack() },
+                onViewQuestions = { navController.navigate("home") },
+                onViewUsers = { /* TODO: navigate to users list */ }
             )
         }
     }

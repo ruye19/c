@@ -17,7 +17,7 @@ import com.example.kotline.ui.viewmodels.LoginViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (Int) -> Unit,
     onSignupClick: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
@@ -28,7 +28,7 @@ fun LoginScreen(
 
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
-            onLoginSuccess()
+            onLoginSuccess((loginState as LoginState.Success).roleId)
         }
     }
 

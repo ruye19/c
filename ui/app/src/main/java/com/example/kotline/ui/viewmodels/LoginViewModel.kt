@@ -44,7 +44,7 @@ interface AuthApi {
 sealed class LoginState {
     object Idle : LoginState()
     object Loading : LoginState()
-    data class Success(val message: String, val token: String, val firstName: String) : LoginState()
+    data class Success(val message: String, val token: String, val firstName: String, val roleId: Int) : LoginState()
     data class Error(val message: String) : LoginState()
 }
 
@@ -104,7 +104,8 @@ class LoginViewModel : ViewModel() {
                         _loginState.value = LoginState.Success(
                             message = it.msg,
                             token = it.token,
-                            firstName = it.user.firstname ?: "User"
+                            firstName = it.user.firstname ?: "User",
+                            roleId = it.user.role_id
                         )
                     } ?: run {
                         Log.e("LoginViewModel", "Empty response from server")
@@ -147,7 +148,8 @@ class LoginViewModel : ViewModel() {
                     _loginState.value = LoginState.Success(
                         message = loginResponse.msg,
                         token = loginResponse.token,
-                        firstName = loginResponse.user.firstname ?: "User"
+                        firstName = loginResponse.user.firstname ?: "User",
+                        roleId = loginResponse.user.role_id
                     )
                 } else {
                     _loginState.value = LoginState.Error("Invalid response from server")
