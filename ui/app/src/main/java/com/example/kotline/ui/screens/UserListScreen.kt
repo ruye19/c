@@ -34,6 +34,7 @@ fun UserListScreen(
     val userListState by viewModel.userListState.collectAsState()
     val context = LocalContext.current
     val isAdmin = AuthManager.roleId == 1
+    var deletingUsers by remember { mutableStateOf(mapOf<String, Boolean>()) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUsers()
@@ -47,7 +48,10 @@ fun UserListScreen(
     ) {
         // Top bar
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
@@ -57,30 +61,34 @@ fun UserListScreen(
                     tint = Color.White
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Users",
                 color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 28.sp
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
             )
+            Spacer(modifier = Modifier.width(48.dp))
         }
-        Spacer(modifier = Modifier.height(16.dp))
+
+        // Search bar
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            placeholder = { Text("Search") },
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
+            placeholder = { Text("Search users...", color = Color.Gray) },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = Color(0xFFFF8800),
                 focusedBorderColor = Color(0xFFFF8800),
                 unfocusedBorderColor = Color.Gray
             )
         )
+
         when (val state = userListState) {
-            is UserListState.Loading, is UserListState.Deleting -> {
+            is UserListState.Loading -> {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color(0xFFFF8800))
                 }
@@ -93,10 +101,27 @@ fun UserListScreen(
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     users.forEach { user ->
-                        UserCard(user, isAdmin, onDelete = {
-                            viewModel.deleteUser(user.userid ?: "")
-                            Toast.makeText(context, "User deleted", Toast.LENGTH_SHORT).show()
-                        })
+                        UserCard(
+                            user = user,
+                            isAdmin = isAdmin,
+                            isDeleting = deletingUsers[user.userid] ?: false,
+                            onDelete = {
+                                val userId = user.userid
+                                if (userId != null) {
+                                    deletingUsers = deletingUsers + (userId to true)
+                                    viewModel.deleteUser(userId) { success ->
+                                        deletingUsers = deletingUsers - userId
+                                        if (success) {
+                                            Toast.makeText(context, "User deleted successfully", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "Failed to delete user", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                } else {
+                                    Toast.makeText(context, "User ID is missing", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -112,15 +137,23 @@ fun UserListScreen(
                     modifier = Modifier.padding(8.dp)
                 )
             }
+            is UserListState.Deleting -> {
+                // Optionally show a loading indicator, or leave empty
+            }
         }
     }
 }
 
 @Composable
-fun UserCard(user: com.example.kotline.ui.api.UserListItem, isAdmin: Boolean, onDelete: () -> Unit) {
+fun UserCard(
+    user: com.example.kotline.ui.api.UserListItem,
+    isAdmin: Boolean,
+    isDeleting: Boolean,
+    onDelete: () -> Unit
+) {
     Card(
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F2F2)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
@@ -149,7 +182,7 @@ fun UserCard(user: com.example.kotline.ui.api.UserListItem, isAdmin: Boolean, on
                     text = "${user.firstname ?: ""} ${user.lastname ?: ""}",
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = Color.Black
+                    color = Color.White
                 )
                 Text(
                     text = user.profession ?: "",
@@ -158,7 +191,10 @@ fun UserCard(user: com.example.kotline.ui.api.UserListItem, isAdmin: Boolean, on
                 )
             }
             if (isAdmin) {
-                IconButton(onClick = onDelete) {
+                IconButton(
+                    onClick = onDelete,
+                    enabled = !isDeleting
+                ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete User",

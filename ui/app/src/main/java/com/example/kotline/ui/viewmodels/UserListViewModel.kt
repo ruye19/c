@@ -40,18 +40,21 @@ class UserListViewModel : ViewModel() {
         }
     }
 
-    fun deleteUser(userId: String) {
+    fun deleteUser(userId: String, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             _userListState.value = UserListState.Deleting
             try {
                 val response = api.deleteUser(userId)
                 if (response.isSuccessful) {
                     fetchUsers()
+                    onComplete(true)
                 } else {
                     _userListState.value = UserListState.DeleteError("Failed to delete user")
+                    onComplete(false)
                 }
             } catch (e: Exception) {
                 _userListState.value = UserListState.DeleteError("Network error: ${e.message}")
+                onComplete(false)
             }
         }
     }

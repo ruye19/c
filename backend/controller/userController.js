@@ -209,11 +209,13 @@ async function getUserStats(req, res) {
 async function getAllUserNamesAndProfessions(req, res) {
   try {
     const [users] = await DBConnection.query(
-      "SELECT firstname, lastname, profession FROM users"
+      "SELECT userid, firstname, lastname, profession FROM users"
     );
 
     const result = users.map((user) => ({
-      fullname: `${user.firstname} ${user.lastname}`,
+      userid: user.userid,
+      firstname: user.firstname,
+      lastname: user.lastname,
       profession: user.profession,
     }));
 
@@ -227,6 +229,21 @@ async function getAllUserNamesAndProfessions(req, res) {
   }
 }
 
+// ========== Delete User ==========
+async function deleteUser(req, res) {
+  try {
+    const { userid } = req.params;
+    await DBConnection.query("DELETE FROM users WHERE userid = ?", [userid]);
+    res.status(StatusCodes.OK).json({ msg: "User deleted successfully" });
+  } catch (error) {
+    console.error("Delete user error:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "Failed to delete user",
+      error: error.message,
+    });
+  }
+}
+
 // ========== Exports ==========
 module.exports = {
   login,
@@ -235,4 +252,5 @@ module.exports = {
   getFullName,
   getUserStats,
   getAllUserNamesAndProfessions,
+  deleteUser,
 };
